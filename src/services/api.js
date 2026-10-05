@@ -1,6 +1,6 @@
 // DECIORA API Service with automatic Seamless Fallback to Mock Data Engine
 import { SCENARIOS, DEMO_USERS, COHORT_TRAINEES, INITIAL_TRAINING_HISTORY, INSTRUCTOR_ANALYTICS, LEADERBOARD_DATA } from './mockData';
-import { evaluateDecision } from './aiEvaluator';
+import { evaluateDecision, evaluateDecisionAsync } from './aiEvaluator';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -94,7 +94,7 @@ export const api = {
     const scenario = SCENARIOS.find(s => s.id === scenarioId) || SCENARIOS[0];
     const decision = scenario.decisions.find(d => d.id === decisionId) || scenario.decisions[0];
 
-    const evaluation = evaluateDecision({
+    const evaluation = await evaluateDecisionAsync({
       scenario,
       decision,
       decisionTimeSeconds,

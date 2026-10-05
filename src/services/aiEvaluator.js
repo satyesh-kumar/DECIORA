@@ -1,6 +1,7 @@
 // DECIORA AI Decision Evaluation Service
 // Evaluates commander decisions under uncertainty, incomplete information, and degraded communications.
 // Core principle: Evaluates decision rationality at the MOMENT of execution, avoiding hindsight bias.
+// Supports live Google Gemini API evaluation with seamless fallback to deterministic simulation logic.
 
 export function evaluateDecision({
   scenario,
@@ -13,11 +14,9 @@ export function evaluateDecision({
   const chosenDecision = scenario.decisions.find(d => d.id === decision.id) || decision;
 
   // 1. Base Decision Quality Score (Max 30 pts)
-  // Reflects inherent rationality based on information known at that instant
   let decisionQuality = chosenDecision.qualityScore || 24;
 
   // 2. Information Usage Score (Max 20 pts)
-  // Evaluates whether commander digested conflicting reports vs jumped to conclusions
   let infoUsage = 18;
   const conflictPresent = availableInformation.some(r => r.isConflict);
   if (conflictPresent) {
@@ -44,26 +43,24 @@ export function evaluateDecision({
   }
 
   // 4. Decision Time Score (Max 15 pts)
-  // Optimal window is 10s - 25s. Under 5s is rash; over deadline incurs penalty.
   let decisionTimeScore = 13;
   if (decisionTimeSeconds < 6) {
-    decisionTimeScore = 9; // Impulsive decision before digesting telemetry
+    decisionTimeScore = 9;
   } else if (decisionTimeSeconds <= 18) {
-    decisionTimeScore = 15; // Optimal cognitive pacing
+    decisionTimeScore = 15;
   } else if (decisionTimeSeconds <= 26) {
     decisionTimeScore = 12;
   } else {
-    decisionTimeScore = 8; // Excessive delay under operational countdown
+    decisionTimeScore = 8;
   }
 
   // 5. Communication Protocol & Degradation Adaptation (Max 15 pts)
   let commScore = 13;
   if (communicationState.level >= 3) {
-    // Under degraded comms, verifying or using fallback protocols is rewarded
     if (chosenDecision.id.includes('recon') || chosenDecision.id.includes('fallback') || chosenDecision.id.includes('triangulate')) {
       commScore = 15;
     } else if (chosenDecision.id.includes('advance') || chosenDecision.id.includes('checkpoint')) {
-      commScore = 9; // Dispatched mobile elements without secure radio link
+      commScore = 9;
     }
   }
 
@@ -101,7 +98,6 @@ export function evaluateDecision({
     weaknesses.push('Committed assets directly into unverified sector without reconnaissance buffer.');
   }
 
-  // Default fallbacks if empty
   if (strengths.length === 0) {
     strengths.push('Maintained command presence and selected a coherent course of action.');
   }
@@ -109,7 +105,6 @@ export function evaluateDecision({
     weaknesses.push('Consider testing alternative pacing under severe signal severance scenarios.');
   }
 
-  // Tactical Recommendation
   let recommendation = '';
   if (totalScore >= 85) {
     recommendation = 'Exemplary command execution. Continue practicing rapid multi-source triangulation to further compress response time while keeping risk minimal.';
@@ -119,7 +114,6 @@ export function evaluateDecision({
     recommendation = 'Avoid reactive maneuvers during signal degradation. Emphasize pre-planned contingency protocols and verify conflicting intelligence before committing personnel.';
   }
 
-  // Narrative summary based on outcome vs rationality
   let summary = '';
   if (chosenDecision.outcomeType === 'success') {
     summary = `The decision to "${chosenDecision.title}" was highly information-aware and proactive. It directly addressed sensor ambiguity while shielding personnel from blind contact.`;
@@ -131,6 +125,7 @@ export function evaluateDecision({
 
   return {
     score: totalScore,
+    isLiveGemini: false,
     breakdown: {
       decisionQuality: Math.round(decisionQuality),
       decisionQualityMax: 30,
@@ -152,4 +147,67 @@ export function evaluateDecision({
     outcomeNarrative: chosenDecision.outcomeNarrative,
     outcomeType: chosenDecision.outcomeType
   };
+}
+
+// Live Gemini API Evaluator with seamless fallback
+export async function evaluateDecisionAsync(params) {
+  const localEval = evaluateDecision(params);
+  const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+  if (!geminiKey || !geminiKey.trim()) {
+    return localEval;
+  }
+
+  try {
+    const prompt = `You are a military decision-making simulation evaluator for PS26048 (abstract fictional training simulator, no real-world combat/targeting instructions).
+Evaluate the commander's decision under degraded communications based on the information available at that exact moment without hindsight bias.
+
+Scenario: "${params.scenario?.title}" (${params.scenario?.objective})
+Available Reports: ${JSON.stringify(params.availableInformation.map(r => ({ source: r.source, message: r.message, confidence: r.confidence, delay: r.delaySeconds })))}
+Communication State: Signal ${params.communicationState?.signalPercent}%, Status: ${params.communicationState?.statusText}
+Commander Decision: "${params.decision?.title}" - ${params.decision?.description}
+Decision Latency: ${params.decisionTimeSeconds?.toFixed(1) || 15} seconds
+
+Respond ONLY with valid JSON with this exact schema:
+{
+  "summary": "1-2 sentence assessment",
+  "strengths": ["strength 1", "strength 2"],
+  "weaknesses": ["area for improvement 1"],
+  "recommendation": "1 actionable command recommendation"
+}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: 'application/json' }
+      })
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (rawText) {
+        const parsed = JSON.parse(rawText);
+        return {
+          ...localEval,
+          isLiveGemini: true,
+          summary: parsed.summary || localEval.summary,
+          strengths: parsed.strengths?.length ? parsed.strengths : localEval.strengths,
+          weaknesses: parsed.weaknesses?.length ? parsed.weaknesses : localEval.weaknesses,
+          recommendation: parsed.recommendation || localEval.recommendation
+        };
+      }
+    }
+  } catch (err) {
+    // If network fails or quota is exhausted, seamlessly fallback to local evaluation
+  }
+
+  return localEval;
 }

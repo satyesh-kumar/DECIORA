@@ -224,11 +224,19 @@ export default function Results({ sessionData, onOpenAAR, onRestart, onGoDashboa
       {/* AI Qualitative Feedback Card */}
       {evaluation && (
         <div className="deciora-card p-6 bg-[#0D1B2A] border-[var(--border-accent)] mb-8">
-          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[var(--border-subtle)]">
-            <Brain className="w-5 h-5 text-[var(--accent-cyan)]" />
-            <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-white">
-              AI Decision Analysis & Tactical Feedback
-            </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-[var(--border-subtle)]">
+            <div className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-[var(--accent-cyan)]" />
+              <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-white">
+                AI Decision Analysis & Tactical Feedback
+              </h2>
+            </div>
+            {evaluation.isLiveGemini && (
+              <span className="px-2.5 py-1 rounded text-[10px] font-mono font-bold bg-[var(--accent-cyan)]/20 text-[var(--accent-cyan)] border border-[var(--accent-cyan)]/40 flex items-center gap-1.5 shadow-sm">
+                <Sparkles className="w-3 h-3 text-[var(--accent-cyan)] animate-pulse" />
+                POWERED BY GOOGLE GEMINI
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
