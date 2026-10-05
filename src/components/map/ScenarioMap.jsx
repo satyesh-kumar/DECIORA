@@ -38,7 +38,9 @@ export default function ScenarioMap({
   const isDegraded = communicationState.level >= 2;
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-xl border border-[var(--border-medium)] bg-[#07111F] shadow-2xl ${compact ? 'h-[360px]' : 'h-[500px] lg:h-[580px]'}`}>
+    <div className={`relative w-full overflow-hidden rounded-xl border border-[var(--border-medium)] bg-[#07111F] shadow-2xl ${
+      compact ? 'h-[320px]' : 'h-[340px] sm:h-[420px] md:h-[480px] lg:h-[540px]'
+    }`}>
       
       {/* Top HUD Telemetry Ribbon */}
       <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-4 py-2 bg-[#07111F]/85 backdrop-blur-md border-b border-[var(--border-subtle)] text-xs font-mono">

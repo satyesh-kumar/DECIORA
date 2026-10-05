@@ -1,7 +1,8 @@
+@import "tailwindcss";
+
 /* ==========================================================================
    DECIORA COMMAND CENTER DESIGN SYSTEM (PS26048 Tactical Training Simulator)
-   Vanilla CSS Master Design System: Design Tokens, Layout Grid Engine,
-   Typography, Telemetry HUD Panels, and Micro-Animations
+   Dark Theme Design Tokens, Layout Grid Engine, Telemetry HUD & Animations
    ========================================================================== */
 
 :root {

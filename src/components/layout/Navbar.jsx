@@ -11,7 +11,9 @@ import {
   Clock, 
   Compass, 
   ChevronDown,
-  Layers
+  Layers,
+  Menu,
+  X
 } from 'lucide-react';
 import { sound } from '../../services/soundSystem';
 
@@ -24,6 +26,7 @@ export default function Navbar({
 }) {
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [showMobileNav, setShowMobileNav] = useState(false);
 
   useEffect(() => {
     return sound.subscribe((muted) => setIsMuted(muted));
@@ -41,28 +44,41 @@ export default function Navbar({
     <nav className="sticky top-0 z-50 bg-[#07111F]/95 backdrop-blur-md border-b border-[var(--border-subtle)] font-mono text-xs">
       <div className="container-custom flex items-center justify-between h-14">
         
-        {/* Logo & Brand */}
-        <div 
-          onClick={() => {
-            sound.playClick();
-            onNavigate('landing');
-          }}
-          className="flex items-center gap-2.5 cursor-pointer select-none group"
-        >
-          <div className="w-8 h-8 rounded-lg bg-[#0D1B2A] border border-[var(--border-accent)] flex items-center justify-center text-[var(--accent-cyan)] shadow-md shadow-[var(--accent-cyan)]/20 group-hover:border-[var(--accent-cyan)] transition-colors">
-            <Radio className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="font-extrabold text-sm md:text-base tracking-wider text-white group-hover:text-[var(--accent-cyan)] transition-colors">
-              DECIORA
+        {/* Left: Mobile Menu Toggle & Brand Logo */}
+        <div className="flex items-center gap-2">
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            onClick={() => setShowMobileNav(!showMobileNav)}
+            className="md:hidden p-1.5 rounded-lg bg-[#12263A] text-white border border-[var(--border-subtle)] hover:bg-[#162E47]"
+            title="Toggle Menu"
+          >
+            {showMobileNav ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </button>
+
+          {/* Logo & Brand */}
+          <div 
+            onClick={() => {
+              sound.playClick();
+              setShowMobileNav(false);
+              onNavigate('landing');
+            }}
+            className="flex items-center gap-2.5 cursor-pointer select-none group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#0D1B2A] border border-[var(--border-accent)] flex items-center justify-center text-[var(--accent-cyan)] shadow-md shadow-[var(--accent-cyan)]/20 group-hover:border-[var(--accent-cyan)] transition-colors">
+              <Radio className="w-4 h-4" />
             </div>
-            <div className="text-[9px] text-[var(--text-muted)] -mt-1 tracking-widest hidden sm:block">
-              PS26048 SIMULATOR
+            <div>
+              <div className="font-extrabold text-sm md:text-base tracking-wider text-white group-hover:text-[var(--accent-cyan)] transition-colors">
+                DECIORA
+              </div>
+              <div className="text-[9px] text-[var(--text-muted)] -mt-1 tracking-widest hidden sm:block">
+                PS26048 SIMULATOR
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Center Nav Items */}
+        {/* Desktop Center Nav Items */}
         <div className="hidden md:flex items-center gap-1 bg-[#0D1B2A] p-1 rounded-xl border border-[var(--border-subtle)]">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -125,7 +141,7 @@ export default function Navbar({
 
             {/* Dropdown Menu */}
             {showRoleMenu && (
-              <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#0D1B2A] border border-[var(--border-accent)] shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 mt-2 w-56 rounded-xl bg-[#0D1B2A] border border-[var(--border-accent)] shadow-2xl p-2 z-50">
                 <div className="px-2 py-1.5 border-b border-[var(--border-subtle)] text-[10px] text-[var(--text-muted)] uppercase">
                   Switch Active Role
                 </div>
@@ -179,6 +195,34 @@ export default function Navbar({
         </div>
 
       </div>
+
+      {/* Mobile Menu Dropdown Drawer */}
+      {showMobileNav && (
+        <div className="md:hidden border-t border-[var(--border-subtle)] bg-[#0D1B2A] px-4 py-3 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentPage === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  sound.playClick();
+                  setShowMobileNav(false);
+                  onNavigate(item.id);
+                }}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all ${
+                  isActive 
+                    ? 'bg-[var(--accent-cyan)] text-[#07111F] font-bold' 
+                    : 'text-[var(--text-secondary)] hover:text-white hover:bg-[#12263A]'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </nav>
   );
 }

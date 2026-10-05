@@ -28,6 +28,7 @@ export default function Simulator({ scenario, onScenarioComplete, onExit }) {
   const [decisionRemaining, setDecisionRemaining] = useState(scenario?.decisionWindowSeconds || 30);
   const [decisionStartTime, setDecisionStartTime] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mobileActiveTab, setMobileActiveTab] = useState('map'); // map | feed | directives
 
   // Sound & Event Trigger Trackers to prevent duplicate triggers
   const triggeredEventsRef = useRef(new Set());
@@ -186,11 +187,54 @@ export default function Simulator({ scenario, onScenarioComplete, onExit }) {
         communicationState={communicationState}
       />
 
+      {/* Mobile Tab Selector (Visible only on <lg screens) */}
+      <div className="lg:hidden px-4 pt-3 pb-1 border-b border-[var(--border-subtle)] bg-[#0D1B2A] flex items-center justify-between gap-2 font-mono text-xs">
+        <div className="flex items-center gap-1.5 w-full">
+          <button
+            onClick={() => sound.playClick() || setMobileActiveTab('map')}
+            className={`flex-1 py-1.5 px-2 rounded-md font-bold text-center transition-all ${
+              mobileActiveTab === 'map'
+                ? 'bg-[var(--accent-cyan)] text-[#07111F]'
+                : 'bg-[#12263A] text-[var(--text-secondary)] hover:text-white'
+            }`}
+          >
+            Tactical Map
+          </button>
+          <button
+            onClick={() => sound.playClick() || setMobileActiveTab('feed')}
+            className={`flex-1 py-1.5 px-2 rounded-md font-bold text-center transition-all flex items-center justify-center gap-1 ${
+              mobileActiveTab === 'feed'
+                ? 'bg-[var(--accent-cyan)] text-[#07111F]'
+                : 'bg-[#12263A] text-[var(--text-secondary)] hover:text-white'
+            }`}
+          >
+            <span>Intel Feed</span>
+            {receivedReports.length > 0 && (
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                mobileActiveTab === 'feed' ? 'bg-[#07111F] text-[var(--accent-cyan)]' : 'bg-sky-500/20 text-sky-300'
+              }`}>
+                {receivedReports.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => sound.playClick() || setMobileActiveTab('directives')}
+            className={`flex-1 py-1.5 px-2 rounded-md font-bold text-center transition-all ${
+              mobileActiveTab === 'directives'
+                ? 'bg-[var(--accent-cyan)] text-[#07111F]'
+                : 'bg-[#12263A] text-[var(--text-secondary)] hover:text-white'
+            }`}
+          >
+            Directives
+          </button>
+        </div>
+      </div>
+
       {/* Main Simulation Workspace Grid */}
       <main className="flex-1 max-w-[1700px] w-full mx-auto p-3 lg:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
         
-        {/* Left Column: Mission Directives & Unit Telemetry (3 cols) */}
-        <div className="lg:col-span-3 flex flex-col gap-4">
+        {/* Left Column: Mission Directives & Unit Telemetry (3 cols on desktop) */}
+        <div className={`lg:col-span-3 flex-col gap-4 ${mobileActiveTab === 'directives' ? 'flex' : 'hidden lg:flex'}`}>
           <MissionSidebar 
             scenario={scenario}
             communicationState={communicationState}
@@ -198,8 +242,8 @@ export default function Simulator({ scenario, onScenarioComplete, onExit }) {
           />
         </div>
 
-        {/* Center Column: Interactive Tactical Map + Bottom Decision Panel (6 cols) */}
-        <div className="lg:col-span-6 flex flex-col gap-4">
+        {/* Center Column: Interactive Tactical Map + Bottom Decision Panel (6 cols on desktop) */}
+        <div className={`lg:col-span-6 flex-col gap-4 ${mobileActiveTab === 'map' ? 'flex' : 'hidden lg:flex'}`}>
           
           {/* Tactical Map Container */}
           <ScenarioMap
@@ -220,8 +264,8 @@ export default function Simulator({ scenario, onScenarioComplete, onExit }) {
 
         </div>
 
-        {/* Right Column: Incoming Intelligence & Conflicting Feed (3 cols) */}
-        <div className="lg:col-span-3 flex flex-col gap-4 h-[650px] lg:h-auto">
+        {/* Right Column: Incoming Intelligence & Conflicting Feed (3 cols on desktop) */}
+        <div className={`lg:col-span-3 flex-col gap-4 h-[550px] lg:h-auto ${mobileActiveTab === 'feed' ? 'flex' : 'hidden lg:flex'}`}>
           <InformationFeed
             reports={receivedReports}
             communicationState={communicationState}
