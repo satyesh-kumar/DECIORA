@@ -17,6 +17,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { sound } from '../services/soundSystem';
+import DecioraLogo from '../components/common/DecioraLogo';
 
 export default function Landing({ 
   onStartTraining, 
@@ -34,10 +35,15 @@ export default function Landing({
 
         <div className="container-custom relative z-10 text-center max-w-4xl mx-auto">
           
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--accent-cyan)]/15 border border-[var(--accent-cyan)]/35 text-[var(--accent-cyan)] font-mono text-xs font-semibold mb-6 uppercase tracking-widest shadow-lg shadow-[var(--accent-cyan)]/10 animate-in fade-in duration-300">
-            <span className="w-2 h-2 rounded-full bg-[var(--accent-cyan)] animate-ping" />
-            PS26048 Tactical Training Simulator
+          {/* Insignia & Badge */}
+          <div className="flex flex-col items-center justify-center mb-6">
+            <div className="mb-4">
+              <DecioraLogo size="xl" showText={false} animated={true} />
+            </div>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--accent-cyan)]/15 border border-[var(--accent-cyan)]/35 text-[var(--accent-cyan)] font-mono text-xs font-semibold uppercase tracking-widest shadow-lg shadow-[var(--accent-cyan)]/10 animate-in fade-in duration-300">
+              <span className="w-2 h-2 rounded-full bg-[var(--accent-cyan)] animate-ping" />
+              PS26048 Tactical Training Simulator
+            </div>
           </div>
 
           {/* Title */}

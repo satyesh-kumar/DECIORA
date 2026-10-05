@@ -13,23 +13,35 @@ import {
   ChevronDown,
   Layers,
   Menu,
-  X
+  X,
+  Moon,
+  Sun,
+  Keyboard
 } from 'lucide-react';
 import { sound } from '../../services/soundSystem';
+import { themeManager } from '../../services/themeManager';
+import DecioraLogo from '../common/DecioraLogo';
 
 export default function Navbar({ 
   user, 
   currentPage, 
   onNavigate, 
   onLogout, 
-  onSwitchRole 
+  onSwitchRole,
+  onOpenShortcuts
 }) {
   const [isMuted, setIsMuted] = useState(sound.isMuted());
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [isNVG, setIsNVG] = useState(themeManager.isNightVision());
 
   useEffect(() => {
-    return sound.subscribe((muted) => setIsMuted(muted));
+    const unsubSound = sound.subscribe((muted) => setIsMuted(muted));
+    const unsubTheme = themeManager.subscribe((nvg) => setIsNVG(nvg));
+    return () => {
+      unsubSound();
+      unsubTheme();
+    };
   }, []);
 
   const navItems = [
@@ -62,19 +74,9 @@ export default function Navbar({
               setShowMobileNav(false);
               onNavigate('landing');
             }}
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
+            className="cursor-pointer select-none group"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#0D1B2A] border border-[var(--border-accent)] flex items-center justify-center text-[var(--accent-cyan)] shadow-md shadow-[var(--accent-cyan)]/20 group-hover:border-[var(--accent-cyan)] transition-colors">
-              <Radio className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="font-extrabold text-sm md:text-base tracking-wider text-white group-hover:text-[var(--accent-cyan)] transition-colors">
-                DECIORA
-              </div>
-              <div className="text-[9px] text-[var(--text-muted)] -mt-1 tracking-widest hidden sm:block">
-                PS26048 SIMULATOR
-              </div>
-            </div>
+            <DecioraLogo size="sm" animated={true} />
           </div>
         </div>
 

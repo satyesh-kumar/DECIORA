@@ -14,10 +14,13 @@ import {
   Sliders,
   ChevronRight,
   Eye,
-  MessageSquare
+  MessageSquare,
+  Printer
 } from 'lucide-react';
 import { api } from '../services/api';
 import { sound } from '../services/soundSystem';
+import { toast } from '../services/toast';
+import DecioraLogo from '../components/common/DecioraLogo';
 
 export default function AAR({ sessionData, scenario, onExit }) {
   const [selectedEventIndex, setSelectedEventIndex] = useState(0);
@@ -96,8 +99,17 @@ export default function AAR({ sessionData, scenario, onExit }) {
     if (sessionData?.id) {
       await api.saveAARReflection(sessionData.id, reflection);
       setIsSaved(true);
+      toast.success('Self-reflection dossier logged to mission archive.', 'AAR ARCHIVED');
       setTimeout(() => setIsSaved(false), 3000);
     }
+  };
+
+  const handlePrintAAR = () => {
+    sound.playClick();
+    toast.info('Preparing official military PDF debrief report...', 'PRINT ENGINE');
+    setTimeout(() => {
+      window.print();
+    }, 250);
   };
 
   const handleExportAAR = () => {
@@ -119,13 +131,38 @@ export default function AAR({ sessionData, scenario, onExit }) {
     a.download = `DECIORA_AAR_${sessionData?.scenarioId || 'session'}_${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    toast.success('AAR timeline telemetry exported as JSON file.', 'TELEMETRY EXPORTED');
   };
 
   return (
     <div className="container-custom py-10 max-w-6xl">
       
-      {/* Top Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-[var(--border-subtle)]">
+      {/* Official Military Printable Header (Visible only when printing) */}
+      <div className="print-header">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-slate-900">
+          <div className="flex items-center gap-3">
+            <DecioraLogo size="sm" showText={false} />
+            <div>
+              <h1 className="text-xl font-bold font-mono tracking-wider text-slate-950">
+                DECIORA TACTICAL COMMAND TRAINING SYSTEM
+              </h1>
+              <p className="text-xs uppercase tracking-widest text-slate-600 font-mono">
+                PS26048 After Action Review (AAR) Operational Debrief Dossier
+              </p>
+            </div>
+          </div>
+          <div className="text-right font-mono text-xs text-slate-800">
+            <span className="px-2 py-0.5 border border-slate-900 font-bold bg-slate-100">
+              RESTRICTED // TRAINING DEBRIEF
+            </span>
+            <p className="text-[10px] text-slate-500 mt-1">SESSION REF: {sessionData?.id || 'SEC-092-26048'}</p>
+            <p className="text-[10px] text-slate-500">DATE: {new Date().toLocaleDateString()}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Header (Web View) */}
+      <div className="no-print flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-[var(--border-subtle)]">
         <div>
           <button 
             onClick={onExit}
@@ -149,13 +186,24 @@ export default function AAR({ sessionData, scenario, onExit }) {
           </div>
         </div>
 
-        <button
-          onClick={handleExportAAR}
-          className="btn btn-outline text-xs font-mono flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Export AAR Data (JSON)
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handlePrintAAR}
+            className="btn btn-outline text-xs font-mono flex items-center gap-2 border-[var(--accent-cyan)]/50 text-[var(--accent-cyan)] hover:bg-[var(--accent-cyan)]/15"
+            title="Generate Official Military PDF Debrief Document"
+          >
+            <Printer className="w-4 h-4" />
+            Print / Save PDF
+          </button>
+
+          <button
+            onClick={handleExportAAR}
+            className="btn btn-outline text-xs font-mono flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export JSON
+          </button>
+        </div>
       </div>
 
       {/* 1. SCENARIO REPLAY SCRUBBER */}
@@ -381,6 +429,20 @@ export default function AAR({ sessionData, scenario, onExit }) {
           </div>
 
         </form>
+      </div>
+
+      {/* Official Printable Endorsement (Appears only on printed PDF) */}
+      <div className="hidden print:flex items-center justify-between pt-16 mt-16 border-t-2 border-slate-900 text-xs font-mono text-slate-800">
+        <div>
+          <div className="w-64 border-b border-slate-800 mb-2" />
+          <p className="font-bold tracking-wider">EVALUATING INSTRUCTOR SIGNATURE</p>
+          <p className="text-[11px] text-slate-500">DECIORA Tactical Evaluation Board</p>
+        </div>
+        <div className="text-right">
+          <div className="w-64 border-b border-slate-800 mb-2 ml-auto" />
+          <p className="font-bold tracking-wider">COMMANDER TRAINEE ENDORSEMENT</p>
+          <p className="text-[11px] text-slate-500">Date: {new Date().toLocaleDateString()} // PS26048</p>
+        </div>
       </div>
 
     </div>

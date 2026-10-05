@@ -12,8 +12,12 @@ import {
   TrendingUp,
   Brain,
   HelpCircle,
-  ShieldAlert
+  ShieldAlert,
+  Printer
 } from 'lucide-react';
+import { sound } from '../services/soundSystem';
+import { toast } from '../services/toast';
+import DecioraLogo from '../components/common/DecioraLogo';
 
 export default function Results({ sessionData, onOpenAAR, onRestart, onGoDashboard }) {
   if (!sessionData) {
@@ -40,9 +44,41 @@ export default function Results({ sessionData, onOpenAAR, onRestart, onGoDashboa
     return 'text-red-400 border-red-500/50 bg-red-500/10';
   };
 
+  const handlePrint = () => {
+    sound.playClick();
+    toast.info('Generating Commander Debrief Scorecard PDF...', 'PRINT ENGINE');
+    setTimeout(() => {
+      window.print();
+    }, 250);
+  };
+
   return (
     <div className="container-custom py-10 max-w-5xl">
       
+      {/* Official Military Printable Header (Print Only) */}
+      <div className="print-header">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-slate-900 mb-6">
+          <div className="flex items-center gap-3">
+            <DecioraLogo size="sm" showText={false} />
+            <div>
+              <h1 className="text-xl font-bold font-mono tracking-wider text-slate-950">
+                DECIORA COMMAND EVALUATION SCORECARD
+              </h1>
+              <p className="text-xs uppercase tracking-widest text-slate-600 font-mono">
+                PS26048 Operational Decision Quality Assessment Dossier
+              </p>
+            </div>
+          </div>
+          <div className="text-right font-mono text-xs text-slate-800">
+            <span className="px-2 py-0.5 border border-slate-900 font-bold bg-slate-100">
+              RESTRICTED // EVALUATION ARCHIVE
+            </span>
+            <p className="text-[10px] text-slate-500 mt-1">SCORE: {score}/100</p>
+            <p className="text-[10px] text-slate-500">DATE: {sessionData.date || new Date().toLocaleDateString()}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Header Banner */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--accent-cyan)]/15 border border-[var(--accent-cyan)]/40 text-[var(--accent-cyan)] text-xs font-mono font-bold mb-3 uppercase tracking-wider">
@@ -285,14 +321,25 @@ export default function Results({ sessionData, onOpenAAR, onRestart, onGoDashboa
       )}
 
       {/* Primary Action Buttons */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[var(--border-subtle)]">
-        <button
-          onClick={onRestart}
-          className="btn btn-secondary font-mono text-xs flex items-center gap-2"
-        >
-          <RotateCcw className="w-4 h-4" />
-          Retake Scenario
-        </button>
+      <div className="no-print flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[var(--border-subtle)]">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onRestart}
+            className="btn btn-secondary font-mono text-xs flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Retake Scenario
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="btn btn-outline font-mono text-xs flex items-center gap-2 border-[var(--accent-cyan)]/50 text-[var(--accent-cyan)] hover:bg-[var(--accent-cyan)]/15"
+            title="Print or Save Scorecard as PDF"
+          >
+            <Printer className="w-4 h-4" />
+            Print Scorecard PDF
+          </button>
+        </div>
 
         <div className="flex items-center gap-3">
           <button

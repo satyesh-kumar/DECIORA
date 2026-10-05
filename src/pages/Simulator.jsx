@@ -6,14 +6,14 @@ import InformationFeed from '../components/reports/InformationFeed';
 import DecisionPanel from '../components/decisions/DecisionPanel';
 import { api } from '../services/api';
 import { sound } from '../services/soundSystem';
+import { toast } from '../services/toast';
 import { AlertTriangle, Radio, CheckCircle, Clock } from 'lucide-react';
 
-export default function Simulator({ scenario, onScenarioComplete, onExit }) {
+export default function Simulator({ scenario, onScenarioComplete, onExit, onOpenShortcuts }) {
   // Scenario Clock & State
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(true);
   const [speedMultiplier, setSpeedMultiplier] = useState(1);
-  const [toasts, setToasts] = useState([]);
 
   // Active Events & Reports
   const [receivedReports, setReceivedReports] = useState([]);
@@ -33,13 +33,13 @@ export default function Simulator({ scenario, onScenarioComplete, onExit }) {
   // Sound & Event Trigger Trackers to prevent duplicate triggers
   const triggeredEventsRef = useRef(new Set());
 
-  // Toast Helper
+  // Toast Helper utilizing unified global toast service
   const addToast = (title, message, type = 'info') => {
-    const id = `toast_${Date.now()}_${Math.random()}`;
-    setToasts(prev => [...prev.slice(-3), { id, title, message, type }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4500);
+    toast.add({
+      title,
+      message,
+      type: type === 'danger' ? 'error' : type
+    });
   };
 
   // Main Simulation Timer Clock Loop
@@ -185,6 +185,7 @@ export default function Simulator({ scenario, onScenarioComplete, onExit }) {
         onReset={handleReset}
         onExit={onExit}
         communicationState={communicationState}
+        onOpenShortcuts={onOpenShortcuts}
       />
 
       {/* Mobile Tab Selector (Visible only on <lg screens) */}
@@ -273,30 +274,6 @@ export default function Simulator({ scenario, onScenarioComplete, onExit }) {
         </div>
 
       </main>
-
-      {/* Toast Notification Stack */}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
-        {toasts.map(toast => (
-          <div
-            key={toast.id}
-            className={`p-3 rounded-lg border backdrop-blur-md shadow-xl text-xs font-mono animate-in slide-in-from-right-5 duration-200 pointer-events-auto ${
-              toast.type === 'danger' ? 'bg-red-950/90 border-red-500 text-red-200' :
-              toast.type === 'warning' ? 'bg-amber-950/90 border-amber-500 text-amber-200' :
-              'bg-[#12263A]/90 border-[var(--accent-cyan)] text-sky-200'
-            }`}
-          >
-            <div className="font-bold flex items-center gap-1.5 mb-0.5">
-              {toast.type === 'danger' ? <AlertTriangle className="w-3.5 h-3.5 text-red-400" /> :
-               toast.type === 'warning' ? <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> :
-               <Radio className="w-3.5 h-3.5 text-[var(--accent-cyan)]" />}
-              <span>{toast.title}</span>
-            </div>
-            <div className="text-[11px] font-sans text-white/90">
-              {toast.message}
-            </div>
-          </div>
-        ))}
-      </div>
 
     </div>
   );

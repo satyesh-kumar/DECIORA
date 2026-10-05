@@ -11,6 +11,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { sound } from '../services/soundSystem';
+import DecioraLogo from '../components/common/DecioraLogo';
 
 export default function Login({ onLoginSuccess, onGoLanding }) {
   const [mode, setMode] = useState('login'); // login | register | forgot
@@ -51,8 +52,8 @@ export default function Login({ onLoginSuccess, onGoLanding }) {
           Back to Portal Home
         </button>
 
-        <div className="inline-flex p-3 rounded-2xl bg-[#0D1B2A] border border-[var(--border-accent)] mb-3 shadow-lg shadow-[var(--accent-cyan)]/15">
-          <Radio className="w-8 h-8 text-[var(--accent-cyan)]" />
+        <div className="mb-3 flex justify-center">
+          <DecioraLogo size="lg" showText={false} animated={true} />
         </div>
 
         <h1 className="text-2xl font-bold font-mono tracking-wider text-white">

@@ -8,9 +8,10 @@ import {
   Signal, 
   WifiOff, 
   CheckCircle2, 
-  Info,
-  ChevronRight
+  Info, 
+  ChevronRight 
 } from 'lucide-react';
+import SignalWaveform from './SignalWaveform';
 
 export default function MissionSidebar({ 
   scenario, 
@@ -83,6 +84,11 @@ export default function MissionSidebar({
               style={{ width: `${signalPercent}%` }}
             />
           </div>
+        </div>
+
+        {/* Real-time Oscillograph Waveform */}
+        <div className="mb-3">
+          <SignalWaveform level={communicationState.level || 1} signalPercent={signalPercent} />
         </div>
 
         {/* Technical Status Readout */}
